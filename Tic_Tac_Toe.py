@@ -26,11 +26,20 @@ cnv.pack(fill=BOTH, expand=1)
 
 
 def WhoFirst():
+    global permission
     move = random.choice([1, 0])
     if move == 0:
         text.config(text="   Computer!   ")
+        comp_choice = random.choice(free)
+        free.remove(comp_choice)
+        comp.append(comp_choice)
+        cx1, cy1, cx2, cy2 = Number_Coords(comp_choice)
+        window.after(600, Draw_zero(cx1 + 5, cy1 + 5, cx2 - 5, cy2 - 5))
+        lblResult.config(text="Your choice")
+        window.update()
     else:
         text.config(text="   You!   ")
+    permission = 1
 
 
 def Check(cells):
@@ -105,56 +114,61 @@ def MakeDecision(event):
     x = event.x
     y = event.y
 
-    man_choice = Coords_Number(x, y)
-    free.remove(man_choice)
-    man.append(man_choice)
-    type_man = type_sym.get()
+    if permission == 1:
+        man_choice = Coords_Number(x, y)
+        free.remove(man_choice)
+        man.append(man_choice)
+        type_man = type_sym.get()
 
-    comp_choice = random.choice(free)
-    free.remove(comp_choice)
-    comp.append(comp_choice)
-    cx1, cy1, cx2, cy2 = Number_Coords(comp_choice)
+        comp_choice = random.choice(free)
+        free.remove(comp_choice)
+        comp.append(comp_choice)
+        cx1, cy1, cx2, cy2 = Number_Coords(comp_choice)
 
-    check, lx1, ly1, lx2, ly2 = CheckThePlay()
+        check, lx1, ly1, lx2, ly2 = CheckThePlay()
 
-    if type_man == "Cross":
-        Draw_cross(cornerx+5, cornery+5, cornerx2-5, cornery2-5)
-        if check == 0:  # Никто еще не выиграл
-            lblResult.config(text="Comp's choice")
-            window.update()
-            if len(free) > 0:
+        if type_man == "Cross":
+            Draw_cross(cornerx+5, cornery+5, cornerx2-5, cornery2-5)
+            if check == 0:  # Никто еще не выиграл
+                lblResult.config(text="Ход компьютера")
+                window.update()
+                if len(free) > 0:
+                    window.after(600, Draw_zero(cx1 + 5, cy1 + 5, cx2 - 5, cy2 - 5))
+                    lblResult.config(text="Ваш ход")
+                else:
+                    messagebox.showinfo("Ничья")
+            elif check == 1:
+                # Выиграл человек
+                Draw_finish_line(lx1, ly1, lx2, ly2)
+                lblResult.config(text="ВЫ ПОБЕДИЛИ!")
+                window.update()
+            elif check == 2:  # Выиграл компьютер
                 window.after(600, Draw_zero(cx1 + 5, cy1 + 5, cx2 - 5, cy2 - 5))
-                lblResult.config(text="Your choice")
-            else:
-                messagebox.showinfo("Ничья")
-        elif check == 1:
-            # Выиграл человек
-            Draw_finish_line(lx1, ly1, lx2, ly2)
-            lblResult.config(text="ВЫ ПОБЕДИЛИ!")
-            window.update()
-        elif check == 2:  # Выиграл компьютер
-            Draw_finish_line(lx1, ly1, lx2, ly2)
-            lblResult.config(text="ПОБЕДИЛ КОМПЬЮТЕР!")
-            window.update()
-    else:
-        Draw_zero(cornerx+5, cornery+5, cornerx2-5, cornery2-5)
-        if check == 0:  # Никто еще не выиграл
-            lblResult.config(text="Comp's choice")
-            window.update()
-            if len(free) > 0:
+                Draw_finish_line(lx1, ly1, lx2, ly2)
+                lblResult.config(text="ПОБЕДИЛ КОМПЬЮТЕР!")
+                window.update()
+        else:
+            Draw_zero(cornerx+5, cornery+5, cornerx2-5, cornery2-5)
+            if check == 0:  # Никто еще не выиграл
+                lblResult.config(text="Ход компьютера")
+                window.update()
+                if len(free) > 0:
+                    window.after(600, Draw_cross(cx1 + 5, cy1 + 5, cx2 - 5, cy2 - 5))
+                    lblResult.config(text="Ваш ход")
+                else:
+                    messagebox.showinfo("Ничья")
+            elif check == 1:
+                # Выиграл человек
+                Draw_finish_line(lx1, ly1, lx2, ly2)
+                lblResult.config(text="ВЫ ПОБЕДИЛИ !")
+                window.update()
+            elif check == 2:  # Выиграл компьютер
                 window.after(600, Draw_cross(cx1 + 5, cy1 + 5, cx2 - 5, cy2 - 5))
-                lblResult.config(text="Your choice")
-            else:
-                messagebox.showinfo("Ничья")
-        elif check == 1:
-            # Выиграл человек
-            Draw_finish_line(lx1, ly1, lx2, ly2)
-            lblResult.config(text="ВЫ ПОБЕДИЛИ!")
-            window.update()
-        elif check == 2:  # Выиграл компьютер
-            Draw_finish_line(lx1, ly1, lx2, ly2)
-            lblResult.config(text="ПОБЕДИЛ КОМПЬЮТЕР!")
-            window.update()
+                Draw_finish_line(lx1, ly1, lx2, ly2)
+                lblResult.config(text="ПОБЕДИЛ КОМПЬЮТЕР !")
+                window.update()
+    else:
+        messagebox.showinfo("Выберите, кто ходит первым !")
 
 
 def Draw_cross(x1, y1, x2, y2):
@@ -167,7 +181,7 @@ def Draw_zero(x1, y1, x2, y2):
 
 
 def Draw_finish_line(x1, y1, x2, y2):
-    cnv.create_line(x1, y1, x2, y2, width=4, fill="#8B0000")
+    cnv.create_line(x1, y1, x2, y2, width=6, fill="#8B0000")
 
 
 def Number_Coords(n):
@@ -272,7 +286,9 @@ def Coords_Number(x, y):
 
 
 def new_game():
-    global free, man, comp
+    global free, man, comp, permission
+    permission = 0
+    text.config(text="")
     cnv.create_rectangle(0, 0, width_sq, height_sq, fill="#FFE4B5")
     cnv.create_line(x1, 0, x1, height_sq)
     cnv.create_line(x2, 0, x2, height_sq)
@@ -285,11 +301,11 @@ def new_game():
 
 type_sym = StringVar()
 
-select_lbl = Label(Menu_frame, text="   Who goes the first?   ")
-select = Button(Menu_frame, text="Let's go!", command=WhoFirst, bg="#00FF7F")
+select_lbl = Label(Menu_frame, text="   Кто ходит первым ?   ")
+select = Button(Menu_frame, text="Начать !", command=WhoFirst, bg="#00FF7F")
 text = Label(Menu_frame, text="")
-lblcross = Label(Menu_frame, text="Cross")
-lblzero = Label(Menu_frame, text="Zero")
+lblcross = Label(Menu_frame, text="Крестики")
+lblzero = Label(Menu_frame, text="Нолики")
 lblResult = Label(Result_frame, text="", bg="#FFFFE0", width=100, height=4, justify=CENTER)
 lblResult.pack()
 
