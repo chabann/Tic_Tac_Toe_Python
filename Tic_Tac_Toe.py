@@ -1,6 +1,6 @@
 import random
 from tkinter import *
-import time
+from tkinter import messagebox
 
 window = Tk()
 
@@ -23,12 +23,7 @@ New_frame.pack(side=TOP)
 
 cnv = Canvas(Play_frame)
 cnv.pack(fill=BOTH, expand=1)
-cnv.create_rectangle(0, 0, width_sq, height_sq, fill="#FFE4B5")
 
-#result = Canvas(Result_frame)
-#result.pack()
-#result.create_rectangle(0, 0, 300, 80, fill="#F0E68C")
-#result.create_text(150, 48, text="Aaaa", justify=CENTER)
 
 def WhoFirst():
     move = random.choice([1, 0])
@@ -36,6 +31,72 @@ def WhoFirst():
         text.config(text="   Computer!   ")
     else:
         text.config(text="   You!   ")
+
+
+def Check(cells):
+    global x1, x2, y1, y2
+    des = 0
+    xc1, xc2, yc1, yc2 = 0, 0, 0, 0
+    if (1 in cells) & (2 in cells) & (3 in cells):
+        des = 1
+        xc1 = 5
+        yc1 = y1 / 2
+        xc2 = width_sq - 5
+        yc2 = y1 / 2
+    elif (4 in cells) & (5 in cells) & (6 in cells):
+        des = 1
+        xc1 = 5
+        yc1 = y1 + y1 / 2
+        xc2 = width_sq - 5
+        yc2 = y1 + y1 / 2
+    elif (7 in cells) & (8 in cells) & (9 in cells):
+        des = 1
+        xc1 = 5
+        yc1 = y2 + y1 / 2
+        xc2 = width_sq - 5
+        yc2 = y2 + y1 / 2
+    elif (1 in cells) & (4 in cells) & (7 in cells):
+        des = 1
+        xc1 = x1 / 2
+        yc1 = 5
+        xc2 = x1 / 2
+        yc2 = height_sq - 5
+    elif (2 in cells) & (5 in cells) & (8 in cells):
+        des = 1
+        xc1 = x1 + x1 / 2
+        yc1 = 5
+        xc2 = x1 + x1 / 2
+        yc2 = height_sq - 5
+    elif (3 in cells) & (6 in cells) & (9 in cells):
+        des = 1
+        xc1 = x2 + x1 / 2
+        yc1 = 5
+        xc2 = x2 + x1 / 2
+        yc2 = height_sq - 5
+    elif (1 in cells) & (5 in cells) & (9 in cells):
+        des = 1
+        xc1 = 5
+        yc1 = 5
+        xc2 = width_sq - 5
+        yc2 = height_sq - 5
+    elif (3 in cells) & (5 in cells) & (7 in cells):
+        des = 1
+        xc1 = width_sq - 5
+        yc1 = 5
+        xc2 = 5
+        yc2 = height_sq - 5
+    return des, xc1, yc1, xc2, yc2
+
+
+def CheckThePlay():
+    # 1 - man, 2 - comp, 0 - nobody
+    global man, comp
+    if Check(man)[0] == 1:
+        return 1, Check(man)[1], Check(man)[2], Check(man)[3], Check(man)[4]
+    elif Check(comp)[0] == 1:
+        return 2, Check(comp)[1], Check(comp)[2], Check(comp)[3], Check(comp)[4]
+    else:
+        return 0, Check(comp)[1], Check(comp)[2], Check(comp)[3], Check(comp)[4]
 
 
 def MakeDecision(event):
@@ -46,26 +107,54 @@ def MakeDecision(event):
 
     man_choice = Coords_Number(x, y)
     free.remove(man_choice)
+    man.append(man_choice)
     type_man = type_sym.get()
 
     comp_choice = random.choice(free)
     free.remove(comp_choice)
-    print(free)
-
+    comp.append(comp_choice)
     cx1, cy1, cx2, cy2 = Number_Coords(comp_choice)
+
+    check, lx1, ly1, lx2, ly2 = CheckThePlay()
 
     if type_man == "Cross":
         Draw_cross(cornerx+5, cornery+5, cornerx2-5, cornery2-5)
-        lblResult.config(text="Comp's choice")
-        window.update()
-        window.after(600, Draw_zero(cx1 + 5, cy1 + 5, cx2 - 5, cy2 - 5))
-        lblResult.config(text="Your choice")
+        if check == 0:  # Никто еще не выиграл
+            lblResult.config(text="Comp's choice")
+            window.update()
+            if len(free) > 0:
+                window.after(600, Draw_zero(cx1 + 5, cy1 + 5, cx2 - 5, cy2 - 5))
+                lblResult.config(text="Your choice")
+            else:
+                messagebox.showinfo("Ничья")
+        elif check == 1:
+            # Выиграл человек
+            Draw_finish_line(lx1, ly1, lx2, ly2)
+            lblResult.config(text="ВЫ ПОБЕДИЛИ!")
+            window.update()
+        elif check == 2:  # Выиграл компьютер
+            Draw_finish_line(lx1, ly1, lx2, ly2)
+            lblResult.config(text="ПОБЕДИЛ КОМПЬЮТЕР!")
+            window.update()
     else:
         Draw_zero(cornerx+5, cornery+5, cornerx2-5, cornery2-5)
-        lblResult.config(text="Comp's choice")
-        window.update()
-        window.after(600, Draw_cross(cx1 + 5, cy1 + 5, cx2 - 5, cy2 - 5))
-        lblResult.config(text="Your choice")
+        if check == 0:  # Никто еще не выиграл
+            lblResult.config(text="Comp's choice")
+            window.update()
+            if len(free) > 0:
+                window.after(600, Draw_cross(cx1 + 5, cy1 + 5, cx2 - 5, cy2 - 5))
+                lblResult.config(text="Your choice")
+            else:
+                messagebox.showinfo("Ничья")
+        elif check == 1:
+            # Выиграл человек
+            Draw_finish_line(lx1, ly1, lx2, ly2)
+            lblResult.config(text="ВЫ ПОБЕДИЛИ!")
+            window.update()
+        elif check == 2:  # Выиграл компьютер
+            Draw_finish_line(lx1, ly1, lx2, ly2)
+            lblResult.config(text="ПОБЕДИЛ КОМПЬЮТЕР!")
+            window.update()
 
 
 def Draw_cross(x1, y1, x2, y2):
@@ -75,6 +164,10 @@ def Draw_cross(x1, y1, x2, y2):
 
 def Draw_zero(x1, y1, x2, y2):
     cnv.create_oval(x1, y1, x2, y2, width=3, outline="#DC143C")
+
+
+def Draw_finish_line(x1, y1, x2, y2):
+    cnv.create_line(x1, y1, x2, y2, width=4, fill="#8B0000")
 
 
 def Number_Coords(n):
@@ -179,13 +272,21 @@ def Coords_Number(x, y):
 
 
 def new_game():
-    print(1)
+    global free, man, comp
+    cnv.create_rectangle(0, 0, width_sq, height_sq, fill="#FFE4B5")
+    cnv.create_line(x1, 0, x1, height_sq)
+    cnv.create_line(x2, 0, x2, height_sq)
+    cnv.create_line(0, y1, width_sq, y1)
+    cnv.create_line(0, y2, width_sq, y2)
+    free = [i for i in range(1, 10)]
+    man = []
+    comp = []
 
 
 type_sym = StringVar()
 
 select_lbl = Label(Menu_frame, text="   Who goes the first?   ")
-select = Button(Menu_frame, text="Let's go!", command=WhoFirst, bg="#FFFFE0")
+select = Button(Menu_frame, text="Let's go!", command=WhoFirst, bg="#00FF7F")
 text = Label(Menu_frame, text="")
 lblcross = Label(Menu_frame, text="Cross")
 lblzero = Label(Menu_frame, text="Zero")
@@ -197,10 +298,9 @@ zero = Radiobutton(Menu_frame, variable=type_sym, value="Zero")
 type_sym.set("Cross")
 
 
-New_game = Button(Result_frame, text=" NEW GAME ", command=new_game)
+New_game = Button(Result_frame, text=" NEW GAME ", command=new_game, pady=10, bg="#32CD32", fg="#FFFFE0")
 New_game.pack()
 
-free = [i for i in range(1, 10)]
 x1 = width_sq / 3
 x2 = width_sq / 3 * 2
 y1 = height_sq / 3
@@ -210,10 +310,7 @@ cornery = 0
 cornerx2 = 0
 cornery2 = 0
 
-cnv.create_line(x1, 0, x1, height_sq)
-cnv.create_line(x2, 0, x2, height_sq)
-cnv.create_line(0, y1, width_sq, y1)
-cnv.create_line(0, y2, width_sq, y2)
+new_game()
 
 select_lbl.grid(row=0, column=0)
 select.grid(row=0, column=1)
